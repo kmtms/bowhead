@@ -1,0 +1,249 @@
+---
+title: "nucleotide_diversity_plots"
+output: html_document
+date: '2023-04-06'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE}
+library(plyr)
+library(tidyverse)
+```
+
+```{r}
+read_data = function(data_path){
+  # data_path <- "nucdiv"   # path to the data
+  files <- dir(data_path, pattern = "*.pestPG") # get file names
+  data <- data_frame(filename = files) %>% # create a data frame
+                                           # holding the file names
+    mutate(file_contents = map(filename,          # read files into
+             ~ read_tsv(file.path(data_path, .))) # a new data column
+          )
+  # cols = c(file_contents)
+  data = unnest(data) %>% select(filename, tW, Tajima, nSites) %>%
+    separate(filename, c("first", "pop", "tail"), sep = "_") %>% select(-first) %>%
+    separate(tail, c("nind", "second", "third", "fourth"), sep = "\\.") %>% select(-second, -third, -fourth)
+  return(data)
+}
+
+data = read_data("nucdiv") %>% mutate(tools = "angsd")
+data_winsfs = read_data("nucdiv_winsfs") %>% mutate(tools = "winsfs")
+all_data = rbind(data, data_winsfs) %>% filter(nSites > 0) %>% mutate(nucDiv = tW/nSites)
+# all_data = rbind(data, data_winsfs) %>% mutate(nSites = replace(nSites, nSites == 0, 1)) %>% mutate(tWbynSites = tW/nSites)
+rm(data)
+rm(data_winsfs)
+gc()
+```
+
+```{r}
+# allind_4pop vs 075ind_4pop
+pops=c("BCB", "ECWG", "EGSB", "OKH", "EGSBds2x")
+pop4 = all_data %>% filter(pop %in% pops) %>% filter(tools == "angsd") #%>%
+  # group_by(pop, nind) %>%  mutate(meanD = mean(Tajima), meantW = mean(tW/nSites))
+
+data.fac = ddply(pop4, .(pop, nind), function(.d)
+data.frame(meanD=mean(.d$Tajima), meanND=mean(.d$nucDiv), sumnsite=sum(.d$nSites)))
+# data.frame(meanD=mean(.d$Tajima, na.rm=TRUE), meantW=mean(.d$tW/.d$nSites, na.rm=TRUE), sumnsite=sum(.d$nSites)))
+
+tajima_plot = ggplot(pop4, aes(x=Tajima))+
+  geom_histogram(bins=60, fill="lightblue")+
+  facet_grid(nind ~ pop)
+nucdiv_plot = ggplot(pop4, aes(x=nucDiv))+
+  geom_histogram(bins=120, fill="lightblue")+
+  facet_grid(nind ~ pop)#+
+  # xlim(0, max(pop4$tW/pop4$nSites, na.rm = TRUE))
+
+tajima_plot+
+  geom_vline(data=data.fac, aes(xintercept=meanD), colour="red", linetype="dashed")
+nucdiv_plot + xlim(0,0.025)+
+  geom_vline(data=data.fac, aes(xintercept=meanND), colour="red", linetype="dashed")
+# print(data.fac)
+
+#### use %+% to override the data going into the plot ***
+
+
+
+columns = c("pop", "subpop1", "subpop2", "tajima_pval", "nucdiv_pval")
+df = data.frame(matrix(nrow = 0, ncol = length(columns))) 
+colnames(df) = columns
+
+for (apop in pops){
+# for (apop in c("BCB")){
+  subpop1 = "075Ind"
+  subpop2 = "allInd"
+  pop075ind = pop4 %>% filter(pop == apop) %>% filter(nind == subpop1)
+  pop100ind = pop4 %>% filter(pop == apop) %>% filter(nind == subpop2)
+  print(paste0("POP: ", apop))
+  test1 = ks.test(pop075ind$Tajima, pop100ind$Tajima)
+  test2 = ks.test(pop075ind$nucDiv, pop100ind$nucDiv)
+  print(test1)
+  print(test2)
+  print("====================================================")
+  df[nrow(df) + 1,] = c(apop, subpop1, subpop2, test1$p.value, test2$p.value)
+}
+write_csv(df, "nucdiv/allind4pop_075ind4pop_test.csv")
+
+
+
+
+
+columns = c("nind", "subpop1", "subpop2", "tajima_pval", "nucdiv_pval")
+df = data.frame(matrix(nrow = 0, ncol = length(columns))) 
+colnames(df) = columns
+subpop1 = "075Ind"
+subpop2 = "allInd"
+pop075ind = pop4 %>% filter(pop == "EGSB") %>% filter(nind == subpop1)
+pop075indds = pop4 %>% filter(pop == "EGSBds2x") %>% filter(nind == subpop1)
+pop100ind = pop4 %>% filter(pop == "EGSB") %>% filter(nind == subpop2)
+pop100indds = pop4 %>% filter(pop == "EGSBds2x") %>% filter(nind == subpop2)
+# print(paste0("POP: ", apop))
+
+test1 = ks.test(pop075ind$Tajima, pop075indds$Tajima)
+test12 = ks.test(pop075ind$nucDiv, pop075indds$nucDiv)
+test2 = ks.test(pop100ind$Tajima, pop100indds$Tajima)
+test22 = ks.test(pop100ind$nucDiv, pop100indds$nucDiv)
+# print(test1)
+# print(test2)
+# print("====================================================")
+df[nrow(df) + 1,] = c(subpop1, "EGSB", "EGSBds2x", test1$p.value, test12$p.value)
+df[nrow(df) + 1,] = c(subpop2, "EGSB", "EGSBds2x", test2$p.value, test22$p.value)
+write_csv(df, "nucdiv/egsb_egsbds2x_test.csv")
+```
+
+```{r}
+# allind_4pop vs 075ind_4pop WINSFS
+pops=c("BCB", "ECWG", "EGSB", "OKH", "EGSBds2x")
+pop4 = all_data %>% filter(pop %in% pops) %>% filter(tools == "winsfs") #%>%
+  # group_by(pop, nind) %>%  mutate(meanD = mean(Tajima), meantW = mean(tW/nSites))
+
+data.fac = ddply(pop4, .(pop, nind), function(.d)
+data.frame(meanD=mean(.d$Tajima, na.rm=TRUE), meanND=mean(.d$nucDiv), sumnsite=sum(.d$nSites)))
+
+tajima_plot = ggplot(pop4, aes(x=Tajima))+
+  geom_histogram(bins=60, fill="lightblue")+
+  geom_vline(data=data.fac, aes(xintercept=meanD), colour="orange", linetype="dashed")+
+  facet_grid(nind ~ pop)
+nucdiv_plot = ggplot(pop4, aes(x=nucDiv))+
+  geom_histogram(bins=120, fill="lightblue")+
+  geom_vline(data=data.fac, aes(xintercept=meanND), colour="orange", linetype="dashed")+
+  facet_grid(nind ~ pop)#+
+  # xlim(0, max(pop4$tW/pop4$nSites, na.rm = TRUE))
+
+tajima_plot
+nucdiv_plot + xlim(0,0.025)
+# print(data.fac)
+
+
+
+pop4 = all_data %>% filter(pop %in% pops)
+columns = c("pop", "subpop", "tool1", "tool2", "tajima_pval", "nucdiv_pval")
+df = data.frame(matrix(nrow = 0, ncol = length(columns))) 
+colnames(df) = columns
+
+for (apop in pops){
+  subpop1 = "075Ind"
+  subpop2 = "allInd"
+  pop075ind = pop4 %>% filter(pop == apop) %>% filter(nind == subpop1) %>% filter(tools == "angsd")
+  pop075ind2 = pop4 %>% filter(pop == apop) %>% filter(nind == subpop1) %>% filter(tools == "winsfs")
+  
+  pop100ind = pop4 %>% filter(pop == apop) %>% filter(nind == subpop2) %>% filter(tools == "angsd")
+  pop100ind2 = pop4 %>% filter(pop == apop) %>% filter(nind == subpop2) %>% filter(tools == "winsfs")
+  
+  print(paste0("POP: ", apop))
+  test1 = ks.test(pop075ind$Tajima, pop075ind2$Tajima)
+  test12 = ks.test(pop100ind$Tajima, pop100ind2$Tajima)
+  test2 = ks.test(pop075ind$nucDiv, pop075ind2$nucDiv)
+  test22 = ks.test(pop100ind$nucDiv, pop100ind2$nucDiv)
+  # print(test1)
+  # print(test2)
+  print("====================================================")
+  df[nrow(df) + 1,] = c(apop, subpop1, "angsd", "winsfs", test1$p.value, test2$p.value)
+  df[nrow(df) + 1,] = c(apop, subpop2, "angsd", "winsfs", test12$p.value, test22$p.value)
+}
+
+write_csv(df, "nucdiv/2tools_bothind_5pop_test.csv")
+```
+```{r}
+data.fac %>%
+  ggplot(aes(x=pop, y=meanD, fill=nind))+
+  # geom_violin() +
+  geom_bar(position = "dodge", stat = "identity")+
+  # ylim(0, 0.025) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))+
+  xlab("Population")+
+  ylab("Mean of Tajima's D")+
+  labs(fill="Min. Individuals")
+```
+
+```{r}
+# pops=c("EGSB", "EGSBds2x")
+# pop_egsb = all_data %>% filter(pop %in% pops) %>% filter(tools == "angsd")
+# 
+# data.fac = ddply(pop_egsb, .(pop, nind), function(.d)
+# data.frame(meanD=mean(.d$Tajima, na.rm=TRUE), meanND=mean(.d$nucDiv), sumnsite=sum(.d$nSites)))
+# print(data.fac)
+# 
+# tajima_plot %+% pop_egsb+
+#   geom_vline(data=data.fac, aes(xintercept=meanD), colour="red", linetype="dashed")
+# nucdiv_plot %+% pop_egsb + xlim(0,0.025)+
+#   geom_vline(data=data.fac, aes(xintercept=meanND), colour="red", linetype="dashed")
+#   # xlim(0, max(pop_egsb$tW/pop_egsb$nSites, na.rm = TRUE))
+```
+
+```{r}
+pops=c("BCB", "ECWG", "EGSB", "OKH")
+pop4_2tools = all_data %>% filter(pop %in% pops) %>% filter(nind == "allInd")
+
+data.fac = ddply(pop4_2tools, .(pop, tools), function(.d)
+data.frame(meanD=mean(.d$Tajima, na.rm=TRUE), meanND=mean(.d$nucDiv), sumnsite=sum(.d$nSites)))
+print(data.fac)
+
+tajima_plot %+% pop4_2tools + facet_grid(tools ~ pop)+
+  geom_vline(data=data.fac, aes(xintercept=meanD), colour="red", linetype="dashed")
+nucdiv_plot %+% pop4_2tools + facet_grid(tools ~ pop) + xlim(0,0.025)+
+  geom_vline(data=data.fac, aes(xintercept=meanND), colour="red", linetype="dashed")
+#+
+  # xlim(0, max(pop_egsb$tW/pop_egsb$nSites, na.rm = TRUE))
+
+pop4_2tools = all_data %>% filter(pop %in% pops) %>% filter(nind == "075Ind")
+
+data.fac = ddply(pop4_2tools, .(pop, tools), function(.d)
+data.frame(meanD=mean(.d$Tajima, na.rm=TRUE), meanND=mean(.d$nucDiv), sumnsite=sum(.d$nSites)))
+print(data.fac)
+
+tajima_plot %+% pop4_2tools + facet_grid(tools ~ pop)+
+  geom_vline(data=data.fac, aes(xintercept=meanD), colour="red", linetype="dashed")
+nucdiv_plot %+% pop4_2tools + facet_grid(tools ~ pop) + xlim(0,0.025)+
+  geom_vline(data=data.fac, aes(xintercept=meanND), colour="red", linetype="dashed")
+```
+
+```{r}
+pops=c("EGSB", "EGSBds2x")
+pop_egsb = all_data %>% filter(pop %in% pops) %>% filter(nind == "allInd")
+
+data.fac = ddply(pop_egsb, .(pop, tools), function(.d)
+data.frame(meanD=mean(.d$Tajima, na.rm=TRUE), meanND=mean(.d$nucDiv), sumnsite=sum(.d$nSites)))
+print(data.fac)
+
+tajima_plot %+% pop_egsb  + facet_grid(tools ~ pop)+
+  geom_vline(data=data.fac, aes(xintercept=meanD), colour="red", linetype="dashed")
+nucdiv_plot %+% pop_egsb  + facet_grid(tools ~ pop)+ xlim(0,0.025)+
+  geom_vline(data=data.fac, aes(xintercept=meanND), colour="red", linetype="dashed")#+
+  # xlim(0, max(pop_egsb$tW/pop_egsb$nSites, na.rm = TRUE))
+
+pop_egsb = all_data %>% filter(pop %in% pops) %>% filter(nind == "075Ind")
+
+data.fac = ddply(pop_egsb, .(pop, tools), function(.d)
+data.frame(meanD=mean(.d$Tajima, na.rm=TRUE), meanND=mean(.d$nucDiv), sumnsite=sum(.d$nSites)))
+print(data.fac)
+
+tajima_plot %+% pop_egsb + facet_grid(tools ~ pop)+
+  geom_vline(data=data.fac, aes(xintercept=meanD), colour="red", linetype="dashed")
+nucdiv_plot %+% pop_egsb  + facet_grid(tools ~ pop)+ xlim(0,0.025)+
+  geom_vline(data=data.fac, aes(xintercept=meanND), colour="red", linetype="dashed")#+
+  # xlim(0, max(pop_egsb$tW/pop_egsb$nSites, na.rm = TRUE))
+```
+

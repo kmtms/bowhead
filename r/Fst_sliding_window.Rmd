@@ -1,0 +1,274 @@
+---
+title: "Fst_sliding_window"
+output: html_document
+date: '2023-03-24'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(grDevices)
+```
+
+```{r}
+pops=c("BCB", "ECWG", "EGSB", "OKH")
+# pops=c("BCB", "ECWG")
+# pops=c("OKH", "ECWG")
+poppairs=c()
+colors=rainbow(6)
+count=1
+for (pop1 in pops){
+  for (pop2 in pops){
+    if(pop1 != pop2){
+      poppop=paste(pop1,".",pop2,sep="")
+      # filename=paste("slidingwindow/bowhead_",pop1,".bowhead_",pop2,"_slidingwindow", sep="")
+      # filename=paste("slidingwindow_075ind_100K/bowhead_",pop1,".bowhead_",pop2,"_slidingwindow_win100K", sep="")
+      # filename=paste("slidingwindow_allind_500K/bowhead_",pop1,".bowhead_",pop2,"_slidingwindow_win500K", sep="")
+      filename=paste("slidingwindow_allind_1M/bowhead_",pop1,".bowhead_",pop2,"_slidingwindow_win1M", sep="")
+      if(file.exists(filename)){
+        poppairs = append(poppairs, poppop)
+        # print(poppairs)
+        data = read.table(filename, header=TRUE, row.names=NULL)
+        colnames_list = append(colnames(data)[2:ncol(data)], "Fst")
+        colnames(data) <- colnames_list
+        # hist(data$Fst, breaks=500, main=filename)
+        if(count == 1){
+          # print(paste(count, poppop))
+          plot(density(data$Fst, main=poppop),xlim=c(-0.05,0.2),ylim=c(0,60), col=colors[count])
+          count = count+1
+        }
+        else{
+          lines(density(data$Fst, main=poppop),col=colors[count])
+          # print(paste(count, poppop))
+          count = count+1
+        }
+      }
+    }
+  }
+}
+# print(poppairs)
+labels=poppairs
+legend("right",title="Legend",labels, col=colors,lwd=2)
+
+# pops=c("BCB", "ECWG", "EGSB", "OKH", "ds2x_EGSB")
+# # pops=c("BCB", "ECWG")
+# # pops=c("OKH", "ECWG")
+# poppairs=c()
+# colors=rainbow(6)
+# count=1
+# for (pop1 in pops){
+#   for (pop2 in pops){
+#     if(pop1 != pop2){
+#       poppop=paste(pop1,".",pop2,sep="")
+#       filename=paste("slidingwindow/bowhead_",pop1,".bowhead_",pop2,"_slidingwindow", sep="")
+#       if((file.exists(filename)) & ((pop1 == "ds2x_EGSB") | (pop2 == "ds2x_EGSB") | (pop1 == "EGSB") | (pop2 == "EGSB"))){
+#         poppairs = append(poppairs, poppop)
+#         # print(poppairs)
+#         data = read.table(filename, header=TRUE, row.names=NULL)
+#         colnames_list = append(colnames(data)[2:ncol(data)], "Fst")
+#         colnames(data) <- colnames_list
+#         # hist(data$Fst, breaks=500, main=filename)
+#         if(count == 1){
+#           # print(paste(count, poppop))
+#           plot(density(data$Fst, main=poppop),xlim=c(-0.2,0.2),ylim=c(0,200), col=colors[count])
+#           count = count+1
+#         }
+#         else{
+#           lines(density(data$Fst, main=poppop),col=colors[count])
+#           # print(paste(count, poppop))
+#           count = count+1
+#         }
+#       }
+#     }
+#   }
+# }
+# # print(poppairs)
+# labels=poppairs
+# legend("right",title="Legend",labels, col=colors,lwd=2)
+```
+
+```{r}
+pops=c("BCB", "ECWG", "EGSB", "OKH")
+poppairs=c()
+colors=rainbow(6)
+count=1
+for (pop1 in pops){
+  for (pop2 in pops){
+    if(pop1 != pop2){
+      poppop=paste(pop1,".",pop2,sep="")
+      filename=paste("slidingwindow_winsfs/bowhead_",pop1,".bowhead_",pop2,"_slidingwindow", sep="")
+      if(file.exists(filename)){
+        poppairs = append(poppairs, poppop)
+        # print(poppairs)
+        data = read.table(filename, header=TRUE, row.names=NULL)
+        colnames_list = append(colnames(data)[2:ncol(data)], "Fst")
+        colnames(data) <- colnames_list
+        # hist(data$Fst, breaks=500, main=filename)
+        if(count == 1){
+          # print(paste(count, poppop))
+          plot(density(data$Fst, main=poppop),xlim=c(0,0.2),ylim=c(0,60), col=colors[count])
+          count = count+1
+        }
+        else{
+          lines(density(data$Fst, main=poppop),col=colors[count])
+          # print(paste(count, poppop))
+          count = count+1
+        }
+      }
+    }
+  }
+}
+# print(poppairs)
+labels=poppairs
+legend("right",title="Legend",labels, col=colors,lwd=2)
+
+pops=c("BCB", "ECWG", "EGSB", "OKH", "ds2x_EGSB")
+poppairs=c()
+colors=rainbow(6)
+count=1
+for (pop1 in pops){
+  for (pop2 in pops){
+    if(pop1 != pop2){
+      poppop=paste(pop1,".",pop2,sep="")
+      filename=paste("slidingwindow_winsfs/bowhead_",pop1,".bowhead_",pop2,"_slidingwindow", sep="")
+      if((file.exists(filename)) & ((pop1 == "ds2x_EGSB") | (pop2 == "ds2x_EGSB") | (pop1 == "EGSB") | (pop2 == "EGSB"))){
+        poppairs = append(poppairs, poppop)
+        # print(poppairs)
+        data = read.table(filename, header=TRUE, row.names=NULL)
+        colnames_list = append(colnames(data)[2:ncol(data)], "Fst")
+        colnames(data) <- colnames_list
+        # hist(data$Fst, breaks=500, main=filename)
+        if(count == 1){
+          # print(paste(count, poppop))
+          plot(density(data$Fst, main=poppop),xlim=c(0,0.2),ylim=c(0,200), col=colors[count])
+          count = count+1
+        }
+        else{
+          lines(density(data$Fst, main=poppop),col=colors[count])
+          # print(paste(count, poppop))
+          count = count+1
+        }
+      }
+    }
+  }
+}
+# print(poppairs)
+labels=poppairs
+legend("right",title="Legend",labels, col=colors,lwd=2)
+```
+
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+# pops=c("BCB", "ECWG", "EGSB", "OKH")
+# count=1
+# data_list = list()
+# for (pop1 in pops){
+#   for (pop2 in pops){
+#     if(pop1 != pop2){
+#       poppop=paste(pop1,".",pop2,sep="")
+#       filename=paste("slidingwindow/bowhead_",pop1,".bowhead_",pop2,"_slidingwindow", sep="")
+#       if(file.exists(filename)){
+#         temp_data = read_tsv(filename, skip=1, col_names=FALSE) %>% select(X5) %>% mutate(name = poppop) %>% rename(Fst = X5)
+#         
+#         data_list = append(data_list, temp_data)
+#         
+#         # colnames_list = append(colnames(data)[2:ncol(data)], "Fst")
+#         # colnames(data) <- colnames_list
+#       }
+#     }
+#   }
+# }
+# data = bind_rows(data_list)
+```
+
+```{r}
+filename = "fst.csv"
+fst = read_csv(filename)
+```
+
+```{r}
+fst_plot = fst %>% filter(window == "100K") %>% filter(tool == "ANGSD")  %>%
+  filter(pop1 != "EGSBds2x") %>% filter(pop2 != "EGSBds2x") %>%
+  unite("pair", pop1:pop2, sep = "_", remove=FALSE) %>%
+  # arrange(minind, fst) %>%
+  mutate(minind = replace(minind, minind == "075ind", "75% of individuals")) %>%
+  mutate(minind = replace(minind, minind == "allind", "All of individuals"))
+
+# # make V1 an ordered factor
+# fst_plot$pair <- factor(fst_plot$pair, levels = fst_plot$pair)
+
+fst_plot %>% ggplot +
+  geom_bar(mapping = aes(x = fct_inorder(pair), y=fst, fill = minind), position = "dodge", stat = "identity") +
+  labs(fill="Min. individuals") + labs(x="Pair")+ labs(y="Global Fst")
+
+# **** NOTE: EGSB has highest coverage > 075ind or allind doesnt affect fst much
+```
+
+```{r}
+fst_plot = fst %>% filter(window == "100K") %>% filter(tool == "ANGSD")  %>%
+  filter(minind == "allind") %>%
+  filter((pop1 == "EGSBds2x") | (pop2 == "EGSBds2x") | (pop1 == "EGSB") | (pop2 == "EGSB")) %>%
+  unite("pair", pop1:pop2, sep = "_", remove=FALSE) %>%
+  # arrange(minind, fst) %>%
+  mutate(minind = replace(minind, minind == "075ind", "75% of individuals")) %>%
+  mutate(minind = replace(minind, minind == "allind", "All of individuals"))
+
+# # make V1 an ordered factor
+# fst_plot$pair <- factor(fst_plot$pair, levels = fst_plot$pair)
+
+fst_plot %>% ggplot +
+  geom_bar(mapping = aes(x = fct_inorder(pair), y=fst), position = "dodge", stat = "identity") + labs(x="Pair")+ labs(y="Global Fst")
+```
+
+```{r}
+fst_plot = fst %>% filter(minind == "allind") %>% filter(tool == "ANGSD")  %>%
+  filter(pop1 != "EGSBds2x") %>% filter(pop2 != "EGSBds2x") %>%
+  unite("pair", pop1:pop2, sep = "_", remove=FALSE) %>%
+  # arrange(minind, fst) %>%
+  mutate(window = replace(window, window == "100K", "1. 100K")) %>%
+  mutate(window = replace(window, window == "500K", "2. 500K")) %>%
+  mutate(window = replace(window, window == "1M", "3. 1M")) #%>%
+
+# # make V1 an ordered factor
+# fst_plot$pair <- factor(fst_plot$pair, levels = fst_plot$pair)
+
+fst_plot %>% ggplot +
+  geom_bar(mapping = aes(x = fct_inorder(pair), y=fst, fill = window), position = "dodge", stat = "identity") +
+  labs(fill="Min. scaffold length") + labs(x="Pair")+ labs(y="Global Fst")
+
+# **** NOTE: EGSB has highest coverage > 075ind or allind doesnt affect fst much
+```
+
+```{r}
+fst_plot = fst %>% filter(minind == "allind") %>% filter(window == "100K")  %>%
+  # filter(pop1 != "EGSBds2x") %>% filter(pop2 != "EGSBds2x") %>%
+  unite("pair", pop1:pop2, sep = "_", remove=FALSE) #%>%
+  # arrange(minind, fst) %>%
+  # mutate(window = replace(window, window == "100K", "1. 100K")) %>%
+  # mutate(window = replace(window, window == "500K", "2. 500K")) %>%
+  # mutate(window = replace(window, window == "1M", "3. 1M")) #%>%
+
+# # make V1 an ordered factor
+# fst_plot$pair <- factor(fst_plot$pair, levels = fst_plot$pair)
+
+fst_plot %>% ggplot +
+  geom_bar(mapping = aes(x = fct_inorder(pair), y=fst, fill = tool), position = "dodge", stat = "identity") +
+  labs(fill="Tool for SFS") + labs(x="Pair")+ labs(y="Global Fst") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+# **** NOTE: EGSB has highest coverage > 075ind or allind doesnt affect fst much
+```
+

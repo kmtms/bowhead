@@ -1,0 +1,13 @@
+/home/hfv906/shared_files/Bams/24311_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24312_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24314_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24315_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24316_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24317_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24318_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24319_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24321_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24322_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_24320_all_map_merged_sort_RG.bam
+/home/hfv906/shared_files/Bams/DL7641_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/DL7642_sorted_markdup.bam

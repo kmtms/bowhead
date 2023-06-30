@@ -1,0 +1,12 @@
+17-05_sorted_markdup	0.186844
+17-07_sorted_markdup	0.124931
+17-08_sorted_markdup	0.109287
+17-10_sorted_markdup	0.147909
+17-12_sorted_markdup	0.113717
+17-17_sorted_markdup	0.120228
+17-18_sorted_markdup	0.116356
+17-19_sorted_markdup	0.095521
+17-20_sorted_markdup	0.182417
+17-21_sorted_markdup	0.112076
+18_5_S2_sorted_markdup	0.200806
+18_6_S3_sorted_markdup	0.178069

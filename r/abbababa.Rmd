@@ -1,0 +1,168 @@
+---
+title: "abbababa"
+output: html_document
+date: '2023-04-29'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r, message = FALSE}
+library(tidyverse)
+library(gtools)
+# library(BSDA)
+```
+
+```{r}
+filename = "bowhead.txt"
+filename = "bowhead_1M_block.txt"
+filename = "bowhead_ds2x_1M_block.txt"
+pop_list = c("BCB", "ECWG", "EGSB", "OKH")
+perm = as.data.frame(permutations(n=4,r=3,v=pop_list)) %>%
+  rename(H1 = V1) %>% rename(H2 = V2) %>% rename(H3 = V3) %>%
+  unite("hs", H1:H3, sep = "_", remove=FALSE) %>% relocate(hs, .after = H3) %>%
+  add_column(nrow = NA)
+
+abbafn = function(h1, h2, h3){
+  abba = read_tsv(filename) %>% select(H1, H2, H3, nABBA, nBABA, Dstat, Z) %>%
+  separate(H1, into = c("H1_id", "H1_pop"), sep="_(?=[^_]+$)") %>%
+  separate(H2, into = c("H2_id", "H2_pop"), sep="_(?=[^_]+$)") %>%
+  separate(H3, into = c("H3_id", "H3_pop"), sep="_(?=[^_]+$)") %>%
+  filter(H1_pop %in% h1) %>% filter(H2_pop %in% h2) %>% filter(H3_pop %in% h3)
+  
+  # filter(H1_pop == "EGSB") %>% filter(H2_pop %in% c("BCB", "ECWG")) %>% filter(H3_pop == "OKH")
+  
+  # filter(H1_pop == "EGSB") %>% filter(H2_pop %in% c("ECWG")) %>% filter(H3_pop == "OKH") # mick didnt suggest
+  # filter(H1_pop == "BCB") %>% filter(H2_pop == "ECWG") %>% filter(H3_pop == "OKH") # mick didnt suggest
+
+  # filter(H1_pop == "BCB") %>% filter(H2_pop == "ECWG") %>% filter(H3_pop == "BCB")
+  # filter(H1_pop == "BCB") %>% filter(H2_pop == "ECWG") %>% filter(H3_pop == "ECWG")
+  return(abba)
+}
+
+testfn = function(i, hs){
+  # abba = abbafn(c(perm[i,1]), c(perm[i,2]), c(perm[i,3]))
+  abba = abbafn(c(perm[i,]$H1), c(perm[i,]$H2), c(perm[i,]$H3))
+  # perm[i,]$nrow = nrow(abba)
+  # hs = paste(perm[i, 1], perm[i, 2], perm[i, 3], sep="_")
+  
+  if(nrow(abba) == 0){
+    print(paste0(hs, " at index ", i, ": nrow = 0!***"))
+  }else{
+    # print(hs)
+    print(paste0(hs, " at index ", i, ": nrow = ", nrow(abba)))
+  }
+  
+  return(abba)
+}
+```
+
+```{r}
+# i = 1
+# hs = paste(perm[i, 1], perm[i, 2], perm[i, 3], sep="_")
+# abba = testfn(i, hs)
+
+# all combi
+for(i in 1:nrow(perm)){
+# for(i in 1:1){
+  # hs = paste(perm[i, 1], perm[i, 2], perm[i, 3], sep="_")
+  hs = perm[i,]$hs
+  abba = testfn(i, hs)
+  perm[i,]$nrow = nrow(abba)
+}
+perm = perm %>% filter(nrow != 0)
+```
+
+```{r}
+an_i = 1
+for(i in an_i:an_i){
+  # hs = paste(perm[i, 1], perm[i, 2], perm[i, 3], sep="_")
+  hs = perm[i,]$hs
+  abba = testfn(i, hs)
+  perm[i,]$nrow = nrow(abba)
+}
+```
+
+```{r}
+# from mick
+abba = abbafn(c("EGSB"), c("BCB", "ECWG"), c("OKH"))
+# abba = abbafn(c("BCB"), c("ECWG"), c("BCB"))
+# abba = abbafn(c("BCB"), c("ECWG"), c("ECWG"))
+# 
+# # by mink
+# abba = abbafn(c("EGSB"), c("ECWG"), c("OKH"))
+# abba = abbafn(c("EGSB"), c("BCB"), c("OKH"))
+# NOUSE # abba = abbafn(c("BCB"), c("ECWG"), c("OKH"))
+```
+
+
+```{r}
+ggplot(abba, aes(x=Z))+
+  geom_histogram(bins = 60, fill="lightblue")+
+  geom_vline(xintercept=mean(abba$Z), linetype = "dashed")+
+  annotate("text",x=mean(abba$Z)+0.1,y=-1,label=paste0("Mean = ", format(round(mean(abba$Z), 4), nsmall = 4)),hjust=0)
+
+# ggplot(abba, aes(x=Dstat))+
+#   geom_histogram(bins = 60, fill="lightblue")+
+#   geom_vline(xintercept=mean(abba$Dstat), linetype = "dashed")+
+#   annotate("text",x=mean(abba$Dstat),y=-1,label=paste0("Mean = ", format(round(mean(abba$Dstat), 4), nsmall = 4)),hjust=0)
+
+# a negative Dstatistics value: H3 closer to H1 than H2, while a positive value: H3 is closer to H2 than H1
+```
+```{r}
+# read in the data
+x <- abba$Z
+# x <- abba$Dstat
+
+# make the qqplot
+qqnorm(x)
+qqline(x)
+# title(sub=hs)
+
+# test_res = t.test(x)
+# # test_res = t.test(x, alternative="greater")
+# test2_res = wilcox.test(x, mu = 0)
+# # test2_res = wilcox.test(x, mu = 0, alternative="greater")
+# print(test_res)
+# print(test2_res)
+
+if(mean(x) > 0){
+  # If the mean Z looks greater than 3
+  wilcox.test(x,mu=3,conf.int=TRUE,alternative=c("greater"),conf.level=0.95)
+}else{
+  # If it looks lower than -3
+  wilcox.test(x,mu=-3,conf.int=TRUE,alternative=c("less"),conf.level=0.95)
+}
+```
+
+
+```{r}
+ggplot(abba, aes(x=Dstat, y=abs(Z), color=(Z<=3 & Z>=-3)))+
+  geom_point(alpha=0.25)+
+  geom_hline(yintercept=3, alpha=0.5, linetype="dashed") #+
+  # geom_hline(yintercept=-3, alpha=0.5, linetype="dashed")
+```
+
+```{r}
+ggplot(abba, aes(x=Dstat, y=Z, color=(Z<=3 & Z>=-3)))+
+  geom_point(alpha=0.25, show.legend = FALSE)+
+  geom_hline(yintercept=3, alpha=0.5, linetype="dashed") +
+  geom_hline(yintercept=-3, alpha=0.5, linetype="dashed") +
+  annotate("text",y=3-0.2,x=max(abba$Dstat),label="3",hjust=0) +
+  annotate("text",y=-3-0.2,x=max(abba$Dstat),label="-3",hjust=0) +
+  # labs(color="Min. individuals") + 
+  labs(x="D-stat") #+ labs(y="Global Fst")
+```
+
+```{r}
+# perm = matrix(perm, ncol = 3, nrow=24)
+abmat = as.data.frame(perm)
+```
+

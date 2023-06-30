@@ -1,0 +1,9 @@
+/home/hfv906/shared_files/Bams/CGG_1_024474_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_024475_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_024476_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_024477_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_024478_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_024479_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_024480_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_024481_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/CGG_1_024483_sorted_markdup.bam

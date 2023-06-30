@@ -1,0 +1,5 @@
+/home/hfv906/shared_files/Bams/24324_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24327_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24328_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24329_sorted_markdup.bam
+/home/hfv906/shared_files/Bams/24330_sorted_markdup.bam

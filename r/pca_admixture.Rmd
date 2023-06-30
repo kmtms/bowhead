@@ -1,0 +1,57 @@
+---
+title: "pca"
+output: html_document
+date: '2023-02-23'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+pop<-read.table("name_list_w_pop.txt") # , sep=","
+filename = "bowhead.cov" # from pcangsd
+# filename = "bowhead_ds2x.cov" # from pcangsd
+# filename = "bowhead.covMat" # from angsd
+C <- as.matrix(read.table(filename)) # pcangsd
+C <- as.matrix(read.table(filename)) # angsd
+e <- eigen(C)
+if (filename == "bowhead.cov") {
+  pdf("PCAngsd1.pdf")
+} else if (filename == "bowhead_ds2x.cov"){
+  pdf("PCAngsd1_ds2x.pdf")
+} else if (filename == "bowhead.covMat"){
+  pdf("PCA_Angsd1.pdf")
+}
+# pdf("PCAngsd1.pdf")
+plot(e$vectors[,1:2],col=factor(pop[,1]),xlab="PC1",ylab="PC2", main="individual allele frequency")
+# plot(e$vectors[,2:3],col=factor(pop[,1]),xlab="PC2",ylab="PC3", main="individual allele frequency")
+# plot(e$vectors[,1],e$vectors[,3],col=factor(pop[,1]),xlab="PC1",ylab="PC3", main="individual allele frequency")
+legend("top",fill=1:5, levels(pop[,1]), legend=levels(factor(pop[,1])))
+# text(e$vectors[,1], e$vectors[,2], labels=pop$V2)
+# text(e$vectors[17,1], e$vectors[17,2], labels=pop[17,2])
+# text(e$vectors[19,1], e$vectors[19,2], labels=pop[19,2])
+dev.off()
+```
+
+```{r}
+library(RcppCNPy) # Numpy library for R
+
+pop<-read.table("name_list_w_pop.txt",as.is=T)
+
+q <- npyLoad("bowhead.admix.Q.npy")
+q = npyLoad("bowhead_ds2x.admix.Q.npy")
+
+## order according to population
+ord<-order(factor(pop[,1]))
+barplot(t(q)[,ord],col=2:10,space=0,border=NA,xlab="Individuals",ylab="Admixture proportions")
+text(tapply(1:nrow(pop),pop[ord,1],mean),-0.05,unique(pop[ord,1]),xpd=T)
+abline(v=cumsum(sapply(unique(pop[ord,1]),function(x){sum(pop[ord,1]==x)})),col=1,lwd=1.2)
+```
+
